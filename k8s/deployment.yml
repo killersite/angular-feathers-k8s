@@ -1,0 +1,45 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+
+metadata:
+  name: angular-feathers-test # name of deployment 
+  labels:
+    app: angular-feathers-test # the Google Project ID running under
+
+spec:
+  replicas: 1 # Run two instances of our application
+  template: # create pods using pod definition in this template
+    metadata:
+      labels:
+        app: angular-feathers-test
+    spec:
+      #Container details
+      containers:
+      - image: us.gcr.io/angular-feathers-test/angular-app:0.0.1
+        name: nginx
+        imagePullPolicy: Always
+        #Ports to expose
+        ports:
+          - containerPort: 80
+          - containerPort: 443
+      restartPolicy: Always
+
+---
+
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: angular-feathers-test # name of deployment
+
+spec:
+  selector:
+    app: angular-feathers-test # the Google Project ID running under
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer
+        
+---
+  

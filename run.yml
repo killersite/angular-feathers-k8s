@@ -1,0 +1,40 @@
+version: '3'
+
+services: 
+
+  feathers:
+    image: us.gcr.io/angular-feathers-test/feathers-app:0.0.1
+    build: ./feathers-app
+    ports:
+      - "3030:3030"
+    depends_on: 
+      - database
+    links:
+      - database
+
+  nginx:
+    # container_name: angular-in-docker
+    image: us.gcr.io/angular-feathers-test/angular-app:0.0.1
+    build: ./angular-app
+    # volumes: 
+    #   - ./angular-app/dist:/usr/share/nginx/html
+    ports: 
+      - "8080:80"
+      - "8443:443"
+    networks: 
+      - app-network
+    links: 
+      - feathers
+
+  database: # name of the third service
+      image: mongo # specify image to build container from
+      ports:
+        - "27017:27017" # specify port forewarding      
+
+# volumes:
+#   angular-app: ./angular-app
+
+networks: 
+  app-network:
+    driver: bridge
+    
