@@ -17,11 +17,27 @@ run: build
 	docker-compose -f ./run.yml up
 
 bash:
-	docker-compose -f ./run.yml run --rm web bash
+	docker-compose -f ./run.yml run --rm nginx bash
 
 clean:
 	docker-compose -f ./run.yml rm -f
 	# docker-compose -f ./test.yml rm -f
+
+upload: build
+	gcloud docker -- push us.gcr.io/angular-feathers-test/angular-app:0.0.1
+	gcloud docker -- push us.gcr.io/angular-feathers-test/feathers-app:0.0.1
+
+create-cluster: 
+	gcloud container clusters create angular-feathers-cluster
+	gcloud config set container/cluster angular-feathers-cluster
+	gcloud container clusters get-credentials angular-feathers-cluster --project angular-feathers-test
+
+delete-cluster:
+	gcloud container clusters delete angular-feathers-cluster
+
+deploy: 
+	gcloud container clusters get-credentials angular-feathers-cluster --project angular-feathers-test
+	kubectl apply -f ./k8s/deployment.yml
 
 deps:
 	echo "  Dependencies: "

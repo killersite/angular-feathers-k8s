@@ -2,21 +2,19 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 
 metadata:
-  name: angular-feathers-test # name of deployment 
-  labels:
-    app: angular-feathers-test # the Google Project ID running under
+  name: angular-nginx # name of deployment 
 
 spec:
   replicas: 1 # Run two instances of our application
   template: # create pods using pod definition in this template
     metadata:
       labels:
-        app: angular-feathers-test
+        app: angular-nginx
     spec:
       #Container details
       containers:
       - image: us.gcr.io/angular-feathers-test/angular-app:0.0.1
-        name: nginx
+        name: angular-nginx
         imagePullPolicy: Always
         #Ports to expose
         ports:
@@ -30,16 +28,113 @@ apiVersion: v1
 kind: Service
 
 metadata:
-  name: angular-feathers-test # name of deployment
+  name: angular-nginx-service # name of deployment
 
 spec:
   selector:
-    app: angular-feathers-test # the Google Project ID running under
+    app: angular-nginx
   ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80
-  type: LoadBalancer
+  - port: 80
+    targetPort: 80
+  # type: LoadBalancer
+  type: NodePort
         
 ---
-  
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: feathers
+  name: feathers
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: feathers
+    spec:
+      containers:
+      - image: us.gcr.io/angular-feathers-test/feathers-app:0.0.1
+        name: feathers
+        ports:
+        - containerPort: 3030
+      restartPolicy: Always
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: feathers
+spec:
+  ports:
+  - port: 3030
+    targetPort: 3030
+  selector:
+    app: feathers
+  type: NodePort
+
+---
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: angular-ingress
+  annotations:
+    # kubernetes.io/ingress.class: "nginx"
+    ingress.kubernetes.io/rewrite-target: /
+    ## https://github.com/nginxinc/kubernetes-ingress
+    # nginx.org/rewrites: "serviceName=angular-nginx-service rewrite=/;serviceName=feathers rewrite=/api/"
+spec:
+  backend:
+    serviceName: angular-nginx-service
+    servicePort: 80
+  rules:
+  - http:
+      paths:
+      - path: /*
+        backend:
+          serviceName: angular-nginx-service
+          servicePort: 80
+      - path: /todo
+        backend:
+          serviceName: feathers
+          servicePort: 3030
+      - path: /socket.io/*
+        backend:
+          serviceName: feathers
+          servicePort: 3030
+
+---
+
+# apiVersion: extensions/v1beta1
+# kind: Ingress
+# metadata:
+#   name: feathers-ingress
+#   annotations:
+#     ingress.kubernetes.io/rewrite-target: /
+# spec:
+#   rules:
+#   - http:
+#       paths:
+#       - path: /api
+#         backend:
+#           serviceName: feathers
+#           servicePort: 3030
+
+---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: echoheaders
+#   labels:
+#     app: echoheaders
+# spec:
+#   ports:
+#   - port: 80
+#     targetPort: 8080
+#     protocol: TCP
+#     name: http
+#   selector:
+#     app: echoheaders

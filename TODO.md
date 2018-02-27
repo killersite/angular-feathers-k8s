@@ -1,8 +1,7 @@
-angular -> nginx
-angular -> express -> mongo
-e2e -> angular
+Better deployment setup
 
-dev
+dev setup
+  minikube
   watch -> nginx
   karma
   watch karma
