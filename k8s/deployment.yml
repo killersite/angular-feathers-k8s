@@ -5,7 +5,7 @@ metadata:
   name: angular-nginx # name of deployment 
 
 spec:
-  replicas: 1 # Run two instances of our application
+  replicas: 1 # Run one instances of our application
   template: # create pods using pod definition in this template
     metadata:
       labels:
@@ -83,7 +83,9 @@ metadata:
   name: angular-ingress
   annotations:
     # kubernetes.io/ingress.class: "nginx"
-    ingress.kubernetes.io/rewrite-target: /
+    # kubernetes.io/ingress.class: "gce"
+    # ingress.kubernetes.io/rewrite-target: "/"
+    # nginx.ingress.kubernetes.io/rewrite-target: "/"
     ## https://github.com/nginxinc/kubernetes-ingress
     # nginx.org/rewrites: "serviceName=angular-nginx-service rewrite=/;serviceName=feathers rewrite=/api/"
 spec:
@@ -97,10 +99,12 @@ spec:
         backend:
           serviceName: angular-nginx-service
           servicePort: 80
-      - path: /todo
+      # REST based feathers API
+      - path: /api/*
         backend:
           serviceName: feathers
           servicePort: 3030
+      # WS based feathers API
       - path: /socket.io/*
         backend:
           serviceName: feathers

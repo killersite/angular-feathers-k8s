@@ -1,4 +1,8 @@
 .SILENT:
+
+TAG?=$(shell git rev-list HEAD --max-count=1 --abbrev-commit)
+export TAG
+
 help:
 	echo
 	echo "Hello-World Make commands"
@@ -38,8 +42,12 @@ delete-cluster:
 deploy: 
 	gcloud container clusters get-credentials angular-feathers-cluster --project angular-feathers-test
 	kubectl apply -f ./k8s/deployment.yml
+	# envsubst < k8s/deployment.yml | kubectl apply -f -
+
+# ship: test pack upload deploy
 
 deps:
+	# add minikube
 	echo "  Dependencies: "
 	echo
 	echo "    * docker $(shell which docker > /dev/null || echo '- \033[31mNOT INSTALLED\033[37m')"

@@ -3,9 +3,15 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { Todo } from '../classes/todo';
 import { Observer } from 'rxjs/Observer';
-import * as feathers from 'feathers-client/dist/feathers.js';
+// import * as feathers from 'feathers-client/dist/feathers.js';
 // import feathers from 'feathers-client';
 import * as io from 'socket.io-client';
+
+// import io from 'socket.io-client';
+import feathers from '@feathersjs/client';
+// import feathers from '@feathersjs/feathers';
+import socketio from '@feathersjs/socketio-client';
+
 
 @Injectable()
 export class TodosService extends ApiService {
@@ -20,9 +26,27 @@ export class TodosService extends ApiService {
   constructor() {
     super();
 
-    const socket = io(this.url);
-    const client = feathers().configure(feathers.socketio(socket));
-    this.feathersService = client.service('todo');
+    const socket = io(this.url, {
+      transports: ['websocket'],
+      forceNew: true
+    });
+    const client = feathers()
+      .configure(feathers.socketio(socket));
+
+      // app level hooks
+      client.hooks({
+        before: {
+          all: [ console.log ]
+        },
+      })
+
+    this.feathersService = client.service('todo'); 
+
+    // this.feathersService.hooks({
+    //   before: {
+    //     all: [ console.log ]
+    //   },
+    // })
 
     this.feathersService.on('created', (todo) => this.onCreated(todo));
     this.feathersService.on('updated', (todo) => this.onUpdated(todo));
@@ -42,13 +66,11 @@ export class TodosService extends ApiService {
     this.feathersService.update(todo.id, todo);
   }
 
-  public find() {
-    this.feathersService.find((err, todos: Todo[]) => {
-      if (err) return console.error(err);
+  public async find() {
+    const todos = await this.feathersService.find();
 
-      this.dataStore.todos = todos;
-      this.todosObserver.next(this.dataStore.todos);
-    });
+    this.dataStore.todos = todos;
+    this.todosObserver.next(this.dataStore.todos);
   }
 
   private getIndex(id: string): number {

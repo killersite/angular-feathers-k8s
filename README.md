@@ -46,14 +46,20 @@ kubectl get pods
 ## List ingress setup
 kubectl get ing
 
+## Show Ingress setup json
+kubectl get ingress -o json
+
 ## List Google Compute backend services
 gcloud compute backend-services list
 
 ## Delete Cluster
 gcloud container clusters delete angular-feathers-cluster
 
-## Describe
+## Describe an Ingress
 kubectl describe ingress angular-ingress
+
+## show setup
+kubectl get ing,services,deploy,pods,ep
 
 # Services
 
