@@ -68,3 +68,8 @@ kubectl create -f ./k8s/service.yml
 
 ## List Services
 kubectl get services
+
+# Notes
+
+## To add data from the command line
+http POST http://35.227.234.248/api/v1/todo title=works?
