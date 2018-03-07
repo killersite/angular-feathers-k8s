@@ -73,3 +73,24 @@ kubectl get services
 
 ## To add data from the command line
 http POST http://35.227.234.248/api/v1/todo title=works?
+
+# Minikube
+
+## start
+minikube start --vm-driver=xhyve
+
+## set the context
+kubectl config use-context minikube
+
+## set minikube to use your host docker context
+eval $(minikube docker-env)
+
+## remove local docker context
+eval $(minikube docker-env -u)
+
+## automatically opens up a browser window using a local IP address
+minikube service <service-name>
+
+## show logs
+kubectl logs <pod-name>
+
