@@ -9,8 +9,13 @@ services:
       - "80:3030"
     depends_on: 
       - database
+      - rethinkdb
     links:
       - database
+    environment:
+      - RETHINKDB_HOST=rethinkdb
+    networks: 
+      - app-network
 
   nginx:
     # container_name: angular-in-docker
@@ -21,15 +26,25 @@ services:
     ports: 
       - "8080:80"
       - "8443:443"
+    # networks: 
+    #   - app-network
+
+  rethinkdb:
+    image: rethinkdb
+    ports:
+    - "28015:28015"
+    - "8080:8080"
+    volumes:
+    - ./rethinkdb_data:/data/rethinkdb_data
     networks: 
-      - app-network
-    links: 
-      - feathers
+    - app-network
 
   database: # name of the third service
-      image: mongo # specify image to build container from
-      ports:
-        - "27017:27017" # specify port forewarding      
+    image: mongo # specify image to build container from
+    ports:
+      - "27017:27017" # specify port forewarding      
+    networks: 
+      - app-network
 
 # volumes:
 #   angular-app: ./angular-app
