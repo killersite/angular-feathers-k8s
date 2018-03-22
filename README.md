@@ -203,3 +203,9 @@ echo "$(minikube ip) <domain1> <domain2>" | sudo tee -a /etc/hosts
 ```
 kubectl exec -it <pod-name> -- /bin/bash
 ```
+
+## Turn off default HTTPS on ingress
+```
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: “false”
+```
