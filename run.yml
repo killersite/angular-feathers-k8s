@@ -1,55 +1,68 @@
 version: '3'
 
-services: 
-
+services:
   feathers:
-    image: us.gcr.io/angular-feathers-test/feathers-app:0.0.1
+    image: us.gcr.io/angular-feathers-test/feathers-app:${TAG:-latest}
     build: ./feathers-app
-    ports:
-      - "80:3030"
-    depends_on: 
+    # ports:
+    #   - '3030:3030'
+    depends_on:
       - database
+      - dynamo
       - rethinkdb
     links:
       - database
+      - dynamo
     environment:
       - RETHINKDB_HOST=rethinkdb
-    networks: 
+    networks:
       - app-network
 
   nginx:
     # container_name: angular-in-docker
-    image: us.gcr.io/angular-feathers-test/angular-app:0.0.1
+    image: us.gcr.io/angular-feathers-test/angular-app:${TAG:-latest}
     build: ./angular-app
-    # volumes: 
+    # volumes:
     #   - ./angular-app/dist:/usr/share/nginx/html
-    ports: 
-      - "8080:80"
-      - "8443:443"
-    # networks: 
-    #   - app-network
+    ports:
+      - '8080:80'
+      - '8443:443'
+    depends_on:
+      - feathers
+    environment:
+      - ENVIRONMENT=production
+      - FEATHERS_URI=//feathers:3030/
+    networks:
+      - app-network
 
   rethinkdb:
     image: rethinkdb
     ports:
-    - "28015:28015"
-    - "8080:8080"
+      - '28015:28015'
+      - '8081:8080'
     volumes:
-    - ./rethinkdb_data:/data/rethinkdb_data
-    networks: 
-    - app-network
+      - ./rethinkdb_data:/data/rethinkdb_data
+    networks:
+      - app-network
 
   database: # name of the third service
     image: mongo # specify image to build container from
     ports:
-      - "27017:27017" # specify port forewarding      
-    networks: 
+      - '27017:27017' # specify port forwarding
+    networks:
+      - app-network
+
+  dynamo:
+    image: amazon/dynamodb-local
+    ports:
+      - '8082:8000'
+      - '8000:8000'
+    networks:
       - app-network
 
 # volumes:
 #   angular-app: ./angular-app
 
-networks: 
+networks:
   app-network:
     driver: bridge
-    

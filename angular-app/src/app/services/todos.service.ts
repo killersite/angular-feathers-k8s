@@ -12,47 +12,45 @@ import feathers from '@feathersjs/client';
 // import feathers from '@feathersjs/feathers';
 import socketio from '@feathersjs/socketio-client';
 
-
 @Injectable()
 export class TodosService extends ApiService {
-
   public todos$: Observable<Todo[]>;
   private todosObserver: Observer<Todo[]>;
   private feathersService: any;
   private dataStore: {
-    todos: Todo[]
+    todos: Todo[];
   };
 
   constructor() {
     super();
 
+    // FIXME this is not connecting to feathers
     const socket = io(this.url, {
       transports: ['websocket'],
       forceNew: true
     });
-    const client = feathers()
-      .configure(feathers.socketio(socket));
+    const client = feathers().configure(feathers.socketio(socket));
 
-      // app level hooks
-      client.hooks({
-        before: {
-          all: [ console.log ]
-        },
-      })
-
-    this.feathersService = client.service('todo'); 
-
-    // this.feathersService.hooks({
+    // app level hooks
+    // client.hooks({
     //   before: {
-    //     all: [ console.log ]
-    //   },
-    // })
+    //     all: [console.log]
+    //   }
+    // });
 
-    this.feathersService.on('created', (todo) => this.onCreated(todo));
-    this.feathersService.on('updated', (todo) => this.onUpdated(todo));
-    this.feathersService.on('removed', (todo) => this.onRemoved(todo));
+    this.feathersService = client.service('todo');
 
-    this.todos$ = new Observable(observer => this.todosObserver = observer);
+    this.feathersService.hooks({
+      before: {
+        all: [console.log]
+      }
+    });
+
+    this.feathersService.on('created', todo => this.onCreated(todo));
+    this.feathersService.on('updated', todo => this.onUpdated(todo));
+    this.feathersService.on('removed', todo => this.onRemoved(todo));
+
+    this.todos$ = new Observable(observer => (this.todosObserver = observer));
     this.dataStore = { todos: [] };
   }
 
@@ -64,6 +62,10 @@ export class TodosService extends ApiService {
 
   updateTodo(todo: Todo) {
     this.feathersService.update(todo.id, todo);
+  }
+
+  deleteTodo(todo: Todo) {
+    this.feathersService.remove(todo.id);
   }
 
   public async find() {
@@ -103,5 +105,4 @@ export class TodosService extends ApiService {
     this.dataStore.todos.splice(index, 1);
     this.todosObserver.next(this.dataStore.todos);
   }
-
 }
